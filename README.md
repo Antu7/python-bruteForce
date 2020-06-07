@@ -1,4 +1,4 @@
-# Simple Brute Force Attack Tools Useing Python
+# Simple Brute Force Attack Tools Using Python
 
 
 ## Simple Installation
@@ -18,6 +18,8 @@ python3 bruteforce.py
 ### Example Image
 
 ![alt text](https://raw.githubusercontent.com/Antu7/python-bruteForce/master/example.jpg)
+
+For more password List check This [Git Repo](https://github.com/danielmiessler/SecLists/tree/master/Passwords)
 
 
 ## Contributing
