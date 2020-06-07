@@ -5,7 +5,7 @@ username = input("Enter Target Username: ")
 error = input("Enter Wrong Password Error Message: ")
 
 try: 
-    def bruteCracking(username,url):
+    def bruteCracking(username,url,error):
         for password in passwords:
             password = password.strip()
             print("Trying:" + password)
