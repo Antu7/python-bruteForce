@@ -17,7 +17,7 @@ python3 bruteforce.py
 
 ### Example Image
 
-![alt text](https://raw.githubusercontent.com/Antu7/python-bruteForce/master/example.png)
+![alt text](https://raw.githubusercontent.com/Antu7/python-bruteForce/master/example.jpg)
 
 
 ## Contributing
