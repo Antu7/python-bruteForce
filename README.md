@@ -1,4 +1,4 @@
-# Simple Brute Force Attack Tools Useing Python
+# Simple Brute Force Attack Tools Using Python
 
 
 ## Simple Installation
