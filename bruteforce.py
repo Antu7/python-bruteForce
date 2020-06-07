@@ -24,6 +24,6 @@ except:
     print("Some Error Occurred Please Check Your Internet Connection !!")
 
 with open("passwords.txt", "r") as passwords:
-    bruteCracking(username,url)
+    bruteCracking(username,url,error)
 
 print("[!!] password not in list")
