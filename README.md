@@ -19,6 +19,8 @@ python3 bruteforce.py
 
 ![alt text](https://raw.githubusercontent.com/Antu7/python-bruteForce/master/example.jpg)
 
+For more password List check This [Git Repo] (https://github.com/danielmiessler/SecLists/tree/master/Passwords)
+
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
