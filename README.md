@@ -14,7 +14,8 @@ pip install requests
 ```bash
 python3 bruteforce.py
 ```
-
+For more please check this Medium [Link](https://medium.com/@textmeantu/brute-force-attack-with-python-c1d70fcba607)
+ 
 ### Example Image
 
 ![alt text](https://raw.githubusercontent.com/Antu7/python-bruteForce/master/example.jpg)
