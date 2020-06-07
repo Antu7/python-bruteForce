@@ -19,7 +19,7 @@ python3 bruteforce.py
 
 ![alt text](https://raw.githubusercontent.com/Antu7/python-bruteForce/master/example.jpg)
 
-For more password List check This [Git Repo] (https://github.com/danielmiessler/SecLists/tree/master/Passwords)
+For more password List check This [Git Repo](https://github.com/danielmiessler/SecLists/tree/master/Passwords)
 
 
 ## Contributing
