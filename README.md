@@ -20,7 +20,7 @@ For more please check this Medium [Link](https://medium.com/@textmeantu/brute-fo
 
 ![alt text](https://raw.githubusercontent.com/Antu7/python-bruteForce/master/example.jpg)
 
-For more password List check This [Git Repo](https://github.com/danielmiessler/SecLists/tree/master/Passwords)
+For more password List check This [Git Repo](https://github.com/Antu7/password-generator)
 
 
 ## Contributing
