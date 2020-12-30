@@ -38,8 +38,10 @@ import sys
 url = input("Enter Target Url: ")
 username = input("Enter Target Username: ")
 error = input("Enter Wrong Password Error Message: ")
-print("Example of a structure:\n header1=^L^;header2=^P^;header3=content")
-print("where ^L^ will be login and ^P^ will be password.\nRemember to separate them with ';'")
+print("\tExample of a structure:")
+print("\t\theader1=^L^;header2=^P^;header3=content")
+print("\twhere ^L^ will be login and ^P^ will be password.")
+print("\tRemember to separate them with ';'")
 data_dict = input("Enter data structure: ")
 if data_dict.count("^L^") == 0 or data_dict.count("^P^") == 0:
     print("Given structure is wrong!")
