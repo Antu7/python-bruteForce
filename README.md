@@ -18,7 +18,8 @@ For more please check this Medium [Link](https://medium.com/@textmeantu/brute-fo
  
 ### Example Image
 
-![alt text](https://raw.githubusercontent.com/Antu7/python-bruteForce/master/test_example.jpg)
+![alt text](https://raw.githubusercontent.com/MattTheCoder-W/python-bruteForce/master/test_example.png)
+
 
 For more password List check This [Git Repo](https://github.com/Antu7/password-generator)
 
