@@ -39,6 +39,13 @@ url = input("Enter Target Url: ")
 username = input("Enter Target Username: ")
 error = input("Enter Wrong Password Error Message: ")
 
+try:
+    if requests.get(url).status_code != 200:
+        raise requests.exceptions.ConnectionError()
+except requests.exceptions.ConnectionError:
+    print("Sorry, specified url is not active!")
+    exit()
+
 for c in z:
     sys.stdout.write(c)
     sys.stdout.flush()
