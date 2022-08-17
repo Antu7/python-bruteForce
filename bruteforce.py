@@ -88,6 +88,8 @@ def file_path(value: str) -> str:
 
 
 if __name__ == "__main__":
+    print(BANNER)  # Print out welcome banner
+    
     args = {}
     if "-i" in sys.argv:
         # Interactive mode, user can specify all values from input
@@ -118,8 +120,6 @@ if __name__ == "__main__":
     args['login_field'] = "login" if not args['login_field'] else args['login_field']
     args['password_field'] = "password" if not args['password_field'] else args['password_field']
     args['passwords_file'] = "passwords.txt" if not args['passwords_file'] else args['passwords_file']
-
-    print(BANNER)  # Print out welcome banner
 
     # Print out loading screen
     for c in LOADING_BANNER:
