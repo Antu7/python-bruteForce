@@ -45,7 +45,7 @@ For more please check this Medium [Link](https://medium.com/@textmeantu/brute-fo
  
 ## Example
 
-![alt text](https://raw.githubusercontent.com/Antu7/python-bruteForce/master/test_example.jpg)
+![alt text](https://github.com/MattTheCoder-W/MyFiles/blob/main/Contributions/python-BruteForce/example.gif?raw=true)
 
 For more password List check This [Git Repo](https://github.com/Antu7/password-generator)
 
@@ -53,7 +53,7 @@ For more password List check This [Git Repo](https://github.com/Antu7/password-g
 
 POST Request is made to website server when you click "Log In" button. To see details about this request open `Developer Options` in your browser and navigate to `Network` tab. Then press "Log In" button and find row corresponding to POST request that was made. When you click it, you can see information about `request` and `response`. In `request` tab find name of fields that were send. You can see how to do this on `test_website` in the video below.
 
-ADD VIDEO!
+![POST Request example](https://github.com/MattTheCoder-W/MyFiles/blob/main/Contributions/python-BruteForce/post-example.gif?raw=true)
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
