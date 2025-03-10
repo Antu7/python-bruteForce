@@ -7,6 +7,7 @@ Use the package manager [pip](https://pip.pypa.io/en/stable/) to install request
 
 ```bash
 pip install requests
+pip install beautifulsoup4
 ```
 
 ## Run
