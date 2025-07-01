@@ -6,8 +6,7 @@
 Use the package manager [pip](https://pip.pypa.io/en/stable/) to install requests.
 
 ```bash
-pip install requests
-pip install beautifulsoup4
+pip install -r requirements.txt
 ```
 
 ## Run
@@ -39,6 +38,15 @@ CSRF tokens protect websites from automated attacks by requiring unique, unpredi
 5. **Token Naming**: Be aware that token field names vary (csrf_token, _token, __RequestVerificationToken, etc.) and adapt your extraction method accordingly.
 
 This technique works by mimicking legitimate browser behavior rather than truly "bypassing" the protection. Remember to only use these methods on systems you own or have permission to test.
+
+## Logging
+
+The script uses logging to track its progress and any errors that occur. The logs are saved in the `logs` directory.
+```bash
+logs/
+├── error.log
+└── security.log
+```
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
