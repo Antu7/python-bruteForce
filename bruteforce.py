@@ -129,9 +129,7 @@ def crack_password_wrapper(password, cracker, counter_lock, counter):
     password = password.strip()
     with counter_lock:
         counter[0] += 1
-        count = counter[0]
-        if count % 50 == 0:
-            print(f"Tried {count} passwords...")
+        print(f"Trying: {cracker.username} : {password}")
 
     if cracker.crack(password, verbose=True):
         return True, password
