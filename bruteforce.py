@@ -108,7 +108,21 @@ class BruteForceCracker:
             if self.error_message in str(response.content) or self.error_message in response_text:
                 return False
 
-            # If explicit error message not found, check if the response still contains a password input field.
+            # Check for redirection
+            # Normalize URLs by stripping query parameters and trailing slashes
+            initial_url = self.url.split('?')[0].rstrip('/')
+            final_url = response.url.split('?')[0].rstrip('/')
+
+            if initial_url != final_url:
+                # If we were redirected to a different path and didn't find the error message, assume success.
+                if verbose:
+                    print(f"\n[+] Success! (Redirected to {final_url})")
+                    print("Username: ---> " + self.username)
+                    print("Password: ---> " + password)
+                return True
+
+            # If explicit error message not found AND we are on the same URL path,
+            # check if the response still contains a password input field.
             # If it does, we likely just re-rendered the login page (failed login).
             # This handles cases where the user-provided error message was typo'd or not visible in HTML source (e.g., hidden toaster).
             if re.search(r'<input[^>]+type=["\']password["\']', response_text, re.I):
