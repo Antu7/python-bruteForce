@@ -1,49 +1,138 @@
-# Simple Brute Force Attack Tools Using Python
+# Python Brute Force Attack Tools
 
+A universal brute force tool with CSRF bypass support for both traditional form-based and JSON API logins.
 
-## Simple Installation
+## Features
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install requests.
+- Form-based login (traditional HTML forms)
+- JSON API login (modern SPA/React/Vue/Angular sites)
+- Universal CSRF bypass (hidden inputs, meta tags, cookies, headers)
+- Auto-detection of login type, field names, and API endpoints
+- Multi-threaded with progress bar
+- Color-coded terminal output
+
+---
+
+## Installation
 
 ```bash
-pip install requests
-pip install beautifulsoup4
+pip install -r requirements.txt
 ```
 
-## Run
+---
+
+## Usage
 
 ```bash
 python3 bruteforce.py
 ```
-For more please check this Medium [Link](https://medium.com/@textmeantu/brute-force-attack-with-python-c1d70fcba607)
- 
-### Example Image
 
-![Screenshot from 2025-03-10 13-30-57](https://github.com/user-attachments/assets/de606bfd-1fe8-4a1a-b8dd-3a48470c5755)
+The tool walks you through 3 steps:
 
+### Step 1 — Target Info
 
-For more password List check This [Git Repo](https://github.com/Antu7/password-generator)
+You'll be asked for:
+- **Login page URL** — e.g. `https://example.com/login`
+- **Username / email** — the account to test
+- **Wrong password error message** — log in with a wrong password in your browser, copy the exact error text (check DevTools → Network → response body if needed)
 
-### CSRF Token Bypass Summary
+### Step 2 — Review & Adjust
 
-CSRF tokens protect websites from automated attacks by requiring unique, unpredictable values with each form submission. To handle these tokens in authorized security testing:
+The tool auto-detects field names, login mode, and API endpoint by fetching the page. Review what it found and press Enter to accept, or type a new value to override.
 
-1. **Session Management**: Use a persistent session to maintain cookies between requests.
+```
+  Username field name [email]:
+  Password field name [password]:
+  API endpoint [https://example.com/api/login]:
+  Login mode [auto]:
+```
 
-2. **Token Extraction**: Extract the CSRF token from the login page's HTML before each attempt. Look for it in hidden form fields, meta tags, or JavaScript variables.
+Login mode options: `auto` (use detected), `form` (HTML form POST), `api` (JSON POST).
 
-3. **Token Inclusion**: Include the extracted token in your login request alongside username and password credentials.
+### Step 3 — Attack Settings
 
-4. **Fresh Tokens**: Some sites invalidate tokens after each request - always fetch a new token before each login attempt.
+- **Workers** — number of concurrent threads (default 10)
+- **Password file** — path to your wordlist (default `passwords.txt`)
 
-5. **Token Naming**: Be aware that token field names vary (csrf_token, _token, __RequestVerificationToken, etc.) and adapt your extraction method accordingly.
+A summary is shown before starting. Confirm with `Y` to begin.
 
-This technique works by mimicking legitimate browser behavior rather than truly "bypassing" the protection. Remember to only use these methods on systems you own or have permission to test.
+### Example
+
+```
+  Target login page URL: https://example.com/login
+  Target username / email: admin
+  Wrong password error message: Invalid email or password
+
+  ──────────────────────────────────────────────────────────
+  AUTO-DETECTING TARGET
+  ──────────────────────────────────────────────────────────
+  [*] Fetching login page...
+  [*] Detecting login type...
+  [+] Detected: JSON API login (modern/SPA site)
+  [+] Username field: email
+  [+] Password field: password
+  [+] API endpoint: https://example.com/api/login
+  [+] CSRF token: csrfmiddlewaretoken
+  [+] Auto-detection complete!
+
+  ──────────────────────────────────────────────────────────
+  RESULTS
+  ──────────────────────────────────────────────────────────
+
+  PASSWORD FOUND!
+
+  Username             admin
+  Password             admin123
+```
+
+---
+
+## Finding the Error Message
+
+If you're not sure what to enter for the error message:
+
+1. Open the login page in your browser
+2. Open DevTools (F12) → **Network** tab
+3. Submit a wrong password
+4. Click the login request → **Response** tab
+5. Copy the exact error text from the response
+
+---
+
+## CSRF Bypass
+
+The tool automatically handles these CSRF protection methods:
+
+| Method | Example | Frameworks |
+|--------|---------|------------|
+| Hidden Input | `<input type="hidden" name="csrf_token">` | Django, Laravel, Rails |
+| Meta Tags | `<meta name="csrf-token" content="...">` | Rails, Laravel |
+| Cookies | `XSRF-TOKEN` cookie | Express, Spring |
+| Headers | `X-CSRFToken` header | Django REST Framework |
+| JavaScript | `var csrfToken = "..."` | Custom implementations |
+
+---
+
+## Legal Disclaimer
+
+**Only use this tool on systems you own or have explicit permission to test.**
+
+Unauthorized access to computer systems is illegal. This tool is for:
+- Security researchers
+- Penetration testers
+- CTF players
+- Educational purposes
+
+---
+
+## Resources
+
+- [Medium Article](https://medium.com/@textmeantu/brute-force-attack-with-python-c1d70fcba607)
+- [Password Lists](https://github.com/Antu7/password-generator)
 
 ## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
-Please make sure to update tests as appropriate.
+Pull requests are welcome. For major changes, please open an issue first.
 
 
 ### Happy Hacking 🔥🔥
