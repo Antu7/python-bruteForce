@@ -19,8 +19,7 @@ A universal brute force tool with CSRF bypass support for both traditional form-
 pip install -r requirements.txt
 ```
 
-**Note**: This version uses the Rich library for enhanced terminal UI. Make sure Rich is installed (included in requirements.txt).
----
+## **Note**: This version uses the Rich library for enhanced terminal UI. Make sure Rich is installed (included in requirements.txt).
 
 ## Usage
 
@@ -33,6 +32,7 @@ The tool walks you through 3 steps:
 ### Step 1 — Target Info
 
 You'll be asked for:
+
 - **Login page URL** — e.g. `https://example.com/login`
 - **Username / email** — the account to test
 - **Wrong password error message** — log in with a wrong password in your browser, copy the exact error text (check DevTools → Network → response body if needed)
@@ -119,6 +119,7 @@ The tool automatically handles these CSRF protection methods:
 **Only use this tool on systems you own or have explicit permission to test.**
 
 Unauthorized access to computer systems is illegal. This tool is for:
+
 - Security researchers
 - Penetration testers
 - CTF players
@@ -141,6 +142,7 @@ Unauthorized access to computer systems is illegal. This tool is for:
 - **Improved Panels**: Banner and success messages use Rich panels with borders.
 - **Better Progress Display**: Progress bar with green styling and real-time updates.
 - **Fixed Prompts**: Input prompts now display hints and defaults correctly without markup leakage.
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first.
