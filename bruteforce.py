@@ -44,15 +44,15 @@ console = Console(force_terminal=True)
 class HackerTheme:
     """Professional hacker-themed styling for the brute force tool."""
     
-    # Color Palette
-    PRIMARY = "cyan"           # Main text - cyberpunk cyan
-    SECONDARY = "magenta"      # Highlights - neon magenta
-    SUCCESS = "green"          # Success messages
-    WARNING = "yellow"         # Warnings
-    ERROR = "red"              # Errors
-    INFO = "bright_cyan"       # Information
-    SUBDUED = "dim cyan"       # Subtle text
-    ACCENT = "bright_magenta"  # Button-like accents
+    # Color Palette - Matrix Inspired Hacker Theme
+    PRIMARY = "green"              # Main text - matrix green
+    SECONDARY = "bright_green"     # Highlights - bright green for emphasis
+    SUCCESS = "bright_green"       # Success messages - bright green
+    WARNING = "yellow"             # Warnings - yellow alert
+    ERROR = "red"                  # Errors - red danger
+    INFO = "cyan"                  # Information - cyan accent
+    SUBDUED = "dim green"          # Subtle text
+    ACCENT = "white"               # Bold accents - white for headers
     
     # Symbols
     BULLET = ">"
@@ -80,11 +80,11 @@ def banner():
     ██████  ██   ██  ██████     ██    ███████     ██       ██████  ██   ██  ██████ ███████
         """
         
-        console.print("\n[bright_cyan]" + "="*80 + "[/bright_cyan]")
-        console.print("[cyan]" + banner_text + "[/cyan]")
-        console.print("[bright_cyan]" + "="*80 + "[/bright_cyan]")
+        console.print("\n[white]" + "="*80 + "[/white]")
+        console.print("[green]" + banner_text + "[/green]")
+        console.print("[white]" + "="*80 + "[/white]")
         
-        console.print("\n[magenta]                       Author: Tanvir Hossain Antu[/magenta]")
+        console.print("\n[bright_green]                       Author: Tanvir Hossain Antu[/bright_green]")
         console.print("[cyan]                  https://github.com/Antu7/python-bruteForce[/cyan]")
         console.print()
         console.print("[green]+[/green] [cyan]Form-based login    [/cyan][green]+[/green] [cyan]JSON API           [/cyan][green]+[/green] [cyan]CSRF Protection    [/cyan][green]+[/green] [cyan]Multi-Threading[/cyan]")
@@ -162,14 +162,14 @@ def status_box(title, content, status="info"):
 def create_config_table(config_data):
     """Create a styled configuration table."""
     table = Table(
-        title="[bold magenta][T] CONFIGURATION[/bold magenta]",
+        title="[bold green][T] CONFIGURATION[/bold green]",
         border_style=HackerTheme.PRIMARY,
         show_header=True,
         header_style=f"bold {HackerTheme.ACCENT}",
     )
     
-    table.add_column("[bright_cyan]Setting[/bright_cyan]", style=HackerTheme.PRIMARY, no_wrap=True)
-    table.add_column("[bright_cyan]Value[/bright_cyan]", style=f"bold {HackerTheme.SECONDARY}")
+    table.add_column("[bright_green]Setting[/bright_green]", style=HackerTheme.PRIMARY, no_wrap=True)
+    table.add_column("[bright_green]Value[/bright_green]", style=f"bold {HackerTheme.SECONDARY}")
     
     for key, value in config_data:
         table.add_row(key, str(value))
