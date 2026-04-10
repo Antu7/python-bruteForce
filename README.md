@@ -9,7 +9,7 @@ A universal brute force tool with CSRF bypass support for both traditional form-
 - Universal CSRF bypass (hidden inputs, meta tags, cookies, headers)
 - Auto-detection of login type, field names, and API endpoints
 - Multi-threaded with progress bar
-- Color-coded terminal output
+- Beautiful Rich-styled terminal output with hacker theme
 
 ---
 
@@ -19,7 +19,7 @@ A universal brute force tool with CSRF bypass support for both traditional form-
 pip install -r requirements.txt
 ```
 
----
+## **Note**: This version uses the Rich library for enhanced terminal UI. Make sure Rich is installed (included in requirements.txt).
 
 ## Usage
 
@@ -32,6 +32,7 @@ The tool walks you through 3 steps:
 ### Step 1 — Target Info
 
 You'll be asked for:
+
 - **Login page URL** — e.g. `https://example.com/login`
 - **Username / email** — the account to test
 - **Wrong password error message** — log in with a wrong password in your browser, copy the exact error text (check DevTools → Network → response body if needed)
@@ -103,13 +104,13 @@ If you're not sure what to enter for the error message:
 
 The tool automatically handles these CSRF protection methods:
 
-| Method | Example | Frameworks |
-|--------|---------|------------|
+| Method       | Example                                   | Frameworks             |
+| ------------ | ----------------------------------------- | ---------------------- |
 | Hidden Input | `<input type="hidden" name="csrf_token">` | Django, Laravel, Rails |
-| Meta Tags | `<meta name="csrf-token" content="...">` | Rails, Laravel |
-| Cookies | `XSRF-TOKEN` cookie | Express, Spring |
-| Headers | `X-CSRFToken` header | Django REST Framework |
-| JavaScript | `var csrfToken = "..."` | Custom implementations |
+| Meta Tags    | `<meta name="csrf-token" content="...">`  | Rails, Laravel         |
+| Cookies      | `XSRF-TOKEN` cookie                       | Express, Spring        |
+| Headers      | `X-CSRFToken` header                      | Django REST Framework  |
+| JavaScript   | `var csrfToken = "..."`                   | Custom implementations |
 
 ---
 
@@ -118,6 +119,7 @@ The tool automatically handles these CSRF protection methods:
 **Only use this tool on systems you own or have explicit permission to test.**
 
 Unauthorized access to computer systems is illegal. This tool is for:
+
 - Security researchers
 - Penetration testers
 - CTF players
@@ -130,9 +132,19 @@ Unauthorized access to computer systems is illegal. This tool is for:
 - [Medium Article](https://medium.com/@textmeantu/brute-force-attack-with-python-c1d70fcba607)
 - [Password Lists](https://github.com/Antu7/password-generator)
 
+## Recent Updates
+
+### v1.1.0 - UI Enhancement
+
+- **Rich Library Integration**: Upgraded terminal output with beautiful, modern UI using the Rich library.
+- **Hacker Theme**: Applied a Matrix-style green color scheme for all outputs, tables, and progress bars.
+- **Enhanced Tables**: Configuration and results now displayed in styled tables for better readability.
+- **Improved Panels**: Banner and success messages use Rich panels with borders.
+- **Better Progress Display**: Progress bar with green styling and real-time updates.
+- **Fixed Prompts**: Input prompts now display hints and defaults correctly without markup leakage.
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first.
-
 
 ### Happy Hacking 🔥🔥
