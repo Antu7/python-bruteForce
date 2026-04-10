@@ -16,64 +16,60 @@ import secrets
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from urllib.parse import urljoin, urlparse
+from rich.console import Console
+from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
+from rich.panel import Panel
+from rich.text import Text
+from rich.table import Table
 
-# ── ANSI Colors ──────────────────────────────────────────────
-class C:
-    RESET   = '\033[0m'
-    BOLD    = '\033[1m'
-    DIM     = '\033[2m'
-    RED     = '\033[91m'
-    GREEN   = '\033[92m'
-    YELLOW  = '\033[93m'
-    BLUE    = '\033[94m'
-    CYAN    = '\033[96m'
-    WHITE   = '\033[97m'
+console = Console()
 
 def banner():
-    print(f"""{C.CYAN}
+    banner_text = """
 ██████  ██████  ██    ██ ████████ ███████     ███████  ██████  ██████   ██████ ███████
 ██   ██ ██   ██ ██    ██    ██    ██          ██      ██    ██ ██   ██ ██      ██
 ██████  ██████  ██    ██    ██    █████       █████   ██    ██ ██████  ██      █████
 ██   ██ ██   ██ ██    ██    ██    ██          ██      ██    ██ ██   ██ ██      ██
 ██████  ██   ██  ██████     ██    ███████     ██       ██████  ██   ██  ██████ ███████
-{C.RESET}
-{C.DIM}                   Tanvir Hossain Antu
-        https://github.com/Antu7/python-bruteForce{C.RESET}
-{C.YELLOW}
+
+                   Tanvir Hossain Antu
+        https://github.com/Antu7/python-bruteForce
+
   Universal login cracker — works with HTML forms, JSON APIs,
   Single Page Apps (React/Vue/Angular), and CSRF-protected sites.
-  Auto-detects login fields, API endpoints, and CSRF tokens.{C.RESET}
-""")
+  Auto-detects login fields, API endpoints, and CSRF tokens.
+"""
+    console.print(Panel(banner_text, title="[bold green]Brute Force Tool[/bold green]", border_style="green"))
 
 def info(msg):
-    print(f"  {C.BLUE}[*]{C.RESET} {msg}")
+    console.print(f"[green][*][/green] {msg}")
 
 def success(msg):
-    print(f"  {C.GREEN}[+]{C.RESET} {msg}")
+    console.print(f"[bold green][+][/bold green] {msg}")
 
 def warn(msg):
-    print(f"  {C.YELLOW}[!]{C.RESET} {msg}")
+    console.print(f"[yellow][!][/yellow] {msg}")
 
 def error(msg):
-    print(f"  {C.RED}[x]{C.RESET} {msg}")
+    console.print(f"[red][x][/red] {msg}")
 
 def dim(msg):
-    print(f"  {C.DIM}    {msg}{C.RESET}")
+    console.print(f"[dim green]{msg}[/dim green]")
 
 def prompt(label, default=None, hint=None):
     """Friendly input prompt with optional default and hint."""
     if hint:
-        print(f"  {C.DIM}    Hint: {hint}{C.RESET}")
+        console.print(f"[dim]{hint}[/dim]")
     if default:
-        raw = input(f"  {C.WHITE}{label} {C.DIM}[{default}]{C.RESET}: ").strip()
+        raw = input(f"  {label} \033[2m[{default}]\033[0m: ").strip()
         return raw if raw else default
     else:
-        return input(f"  {C.WHITE}{label}{C.RESET}: ").strip()
+        return input(f"  {label}: ").strip()
 
 def section(title):
-    print(f"\n  {C.CYAN}{'─'*56}{C.RESET}")
-    print(f"  {C.BOLD}{C.WHITE}{title}{C.RESET}")
-    print(f"  {C.CYAN}{'─'*56}{C.RESET}")
+    console.print(f"\n[green]{'─'*56}[/green]")
+    console.print(f"[bold green]{title}[/bold green]")
+    console.print(f"[green]{'─'*56}[/green]")
 
 
 # ── Core Cracker ─────────────────────────────────────────────
@@ -509,7 +505,7 @@ def progress_bar(current, total, width=30):
     """Compact progress bar for terminal."""
     pct = current / total if total else 0
     filled = int(width * pct)
-    bar = f"{'█' * filled}{'░' * (width - filled)}"
+    bar = f"\033[92m{'█' * filled}\033[0m\033[32m{'░' * (width - filled)}\033[0m"
     return f"{bar} {current}/{total} ({pct*100:.1f}%)"
 
 
@@ -523,7 +519,7 @@ def crack_password_wrapper(password, cracker, state):
 
     # Update progress (overwrite same line)
     total = state['total']
-    sys.stdout.write(f"\r  {C.BLUE}[*]{C.RESET} {progress_bar(current, total)}  Current: {password[:20]:<20}")
+    sys.stdout.write(f"\r\033[92m[*]\033[0m {progress_bar(current, total)}  Current: {password[:20]:<20}")
     sys.stdout.flush()
 
     ok, reason = cracker.crack(password)
@@ -605,18 +601,23 @@ def main():
 
     # ── Summary ──
     section("CONFIGURATION SUMMARY")
-    print()
-    print(f"  {C.DIM}{'Target URL':<20}{C.RESET} {url}")
-    print(f"  {C.DIM}{'Username':<20}{C.RESET} {username}")
-    print(f"  {C.DIM}{'Login Mode':<20}{C.RESET} {analysis['login_mode'].upper()}")
+    console.print()
+
+    config_table = Table(title="Configuration")
+    config_table.add_column("Setting", style="green", no_wrap=True)
+    config_table.add_column("Value", style="bold green")
+    config_table.add_row("Target URL", url)
+    config_table.add_row("Username", username)
+    config_table.add_row("Login Mode", analysis['login_mode'].upper())
     if analysis['login_mode'] == BruteForceCracker.MODE_JSON_API:
-        print(f"  {C.DIM}{'API Endpoint':<20}{C.RESET} {analysis['api_endpoint']}")
-    print(f"  {C.DIM}{'Username Field':<20}{C.RESET} {analysis['username_field']}")
-    print(f"  {C.DIM}{'Password Field':<20}{C.RESET} {analysis['password_field']}")
-    print(f"  {C.DIM}{'CSRF Token':<20}{C.RESET} {'Yes — ' + analysis['csrf_token'] if analysis['csrf_token'] else 'None'}")
-    print(f"  {C.DIM}{'Workers':<20}{C.RESET} {max_workers}")
-    print(f"  {C.DIM}{'Password File':<20}{C.RESET} {password_file}")
-    print()
+        config_table.add_row("API Endpoint", analysis['api_endpoint'])
+    config_table.add_row("Username Field", analysis['username_field'])
+    config_table.add_row("Password Field", analysis['password_field'])
+    config_table.add_row("CSRF Token", 'Yes — ' + analysis['csrf_token'] if analysis['csrf_token'] else 'None')
+    config_table.add_row("Workers", str(max_workers))
+    config_table.add_row("Password File", password_file)
+    console.print(config_table)
+    console.print()
 
     confirm = prompt("Start attack? (Y/n)", default="Y")
     if confirm.lower() not in ['y', 'yes', '']:
@@ -737,28 +738,28 @@ def main():
 
     # ── Results ──
     section("RESULTS")
-    print()
+    console.print()
 
     tried = state['tried']
     speed = tried / max(elapsed, 0.1)
 
-    print(f"  {C.DIM}{'Passwords Tried':<20}{C.RESET} {tried}/{total_passwords}")
-    print(f"  {C.DIM}{'Time Elapsed':<20}{C.RESET} {elapsed:.2f} seconds")
-    print(f"  {C.DIM}{'Speed':<20}{C.RESET} {speed:.1f} attempts/sec")
-    print()
+    table = Table(title="Attack Summary")
+    table.add_column("Metric", style="green", no_wrap=True)
+    table.add_column("Value", style="bold green")
+    table.add_row("Passwords Tried", f"{tried}/{total_passwords}")
+    table.add_row("Time Elapsed", f"{elapsed:.2f} seconds")
+    table.add_row("Speed", f"{speed:.1f} attempts/sec")
+    console.print(table)
+    console.print()
 
     if found:
-        print(f"  {C.GREEN}{C.BOLD}PASSWORD FOUND!{C.RESET}")
-        print()
-        print(f"  {C.GREEN}{'Username':<20}{C.RESET} {username}")
-        print(f"  {C.GREEN}{'Password':<20}{C.RESET} {found_password}")
-        if found_reason:
-            print(f"  {C.DIM}{'Detection':<20}{C.RESET} {found_reason}")
+        success_panel = Panel(f"[green]Username: {username}\nPassword: {found_password}[/green]" + (f"\n[dim]Detection: {found_reason}[/dim]" if found_reason else ""), title="[bold green]PASSWORD FOUND![/bold green]", border_style="green")
+        console.print(success_panel)
     else:
         warn("Password not found in the wordlist.")
         dim("Try a larger wordlist or check your configuration.")
 
-    print(f"\n  {C.CYAN}{'─'*56}{C.RESET}\n")
+    console.print(f"\n[cyan]{'─'*56}[/cyan]\n")
 
 
 if __name__ == '__main__':
